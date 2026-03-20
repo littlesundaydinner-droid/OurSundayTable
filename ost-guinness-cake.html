@@ -53,7 +53,7 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
 .hero-meta-item span{color:var(--gold)}
 
 /* STATS BAR */
-.stats-bar{background:var(--navy);border-bottom:1px solid rgba(232,201,122,0.15);padding:0 40px;display:flex;align-items:center;gap:0;overflow-x:auto}
+.stats-bar{background:var(--navy);border-bottom:1px solid rgba(232,201,122,0.15);padding:0 40px;display:flex;align-items:center;gap:0;overflow-x:auto;white-space:nowrap}
 .stats-bar::-webkit-scrollbar{display:none}
 .stat-item{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(250,246,238,0.4);padding:14px 24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap}
 .stat-item span{color:var(--gold);display:block;font-size:14px;font-family:'Cormorant Garamond',serif;font-weight:700;margin-bottom:2px}
@@ -158,7 +158,9 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
   .nav-inner{justify-content:center}
   .hamburger{display:flex}
   .hero-content{padding:0 28px}
-  .stats-bar{padding:0 20px}
+  .stats-bar{padding:0;flex-direction:column;align-items:stretch;overflow-x:visible}
+  .stat-item{border-right:none;border-bottom:1px solid rgba(255,255,255,0.07);padding:12px 20px;white-space:normal}
+  .stat-item span{display:inline;font-size:13px;margin-right:6px}
   .article{padding:44px 20px}
   .article-photo{margin:28px -20px}
   .article-photo-cap{padding:10px 20px}
@@ -217,7 +219,7 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
-  <div class="mobile-menu-brand">Our Sunday Table<div class="mobile-menu-sub">Joy · Heritage · Science</div></div>
+  <a href="/index.html" style="text-decoration:none;"><div class="mobile-menu-brand">Our Sunday Table<div class="mobile-menu-sub">Joy · Heritage · Science</div></div></a>
   <a href="/ost-our-recipes-v2.html">Our Recipes</a>
   <a href="/ost-global-lab-v2.html">The Global Lab</a>
   <a href="/ost-shop.html">Shop the Table</a>
