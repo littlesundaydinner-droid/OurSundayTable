@@ -171,6 +171,7 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
 
 @media(max-width:800px){
   .nav-left,.nav-right{display:none}
+  .hamburger{display:flex}
   .nav-inner{justify-content:center}
   .hero-content{padding:0 28px;max-width:100%}
   .stat-bar-inner{justify-content:center;gap:24px}
@@ -188,6 +189,36 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
   .footer-inner{flex-direction:column;gap:20px;text-align:center}
   .footer-links{justify-content:center;flex-wrap:wrap;gap:16px}
 }
+
+/* ── MOBILE NAV ── */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;z-index:200;position:relative}
+.hamburger span{display:block;width:22px;height:2px;background:var(--cream);border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{
+  display:none;position:fixed;inset:0;background:var(--navy);
+  z-index:150;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+}
+.mobile-menu.open{display:flex}
+.mobile-menu a{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:rgba(250,246,238,0.6);
+  text-decoration:none;padding:18px 0;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  width:240px;text-align:center;transition:color .2s;
+}
+.mobile-menu a:hover{color:var(--gold)}
+.mobile-menu a.gold{color:var(--gold)}
+.mobile-menu-brand{
+  font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;
+  color:var(--cream);margin-bottom:32px;text-align:center;
+}
+.mobile-menu-sub{
+  font-family:'DM Mono',monospace;font-size:7px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--gold);margin-top:4px;
+}
 </style>
 </head>
 <body>
@@ -195,21 +226,37 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
 <nav>
   <div class="nav-inner">
     <ul class="nav-left">
-      <li><a href="#">Our Recipes</a></li>
-      <li><a href="#">The Global Lab</a></li>
-      <li><a href="#">Shop the Table</a></li>
+      <li><a href="/ost-our-recipes-v2.html">Our Recipes</a></li>
+      <li><a href="/ost-global-lab-v2.html">The Global Lab</a></li>
+      <li><a href="/ost-shop.html">Shop the Table</a></li>
     </ul>
     <div class="nav-center">
-      <div class="nav-brand">Our Sunday Table</div>
+      <div class="nav-brand"><a href="/index.html" style="text-decoration:none;color:inherit;">Our Sunday Table</a></div>
       <div class="nav-sub">Joy · Heritage · Science</div>
     </div>
     <ul class="nav-right">
-      <li class="active"><a href="#">The Food Fund</a></li>
-      <li><a href="#">Our Story</a></li>
-      <li class="nav-join"><a href="#">Join the Table</a></li>
+      <li class="active"><a href="/ost-food-fund.html">The Food Fund</a></li>
+      <li><a href="/ost-our-story.html">Our Story</a></li>
+      <li class="nav-join"><a href="/ost-join-the-table.html">Join the Table</a></li>
     </ul>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-brand">
+    Our Sunday Table
+    <div class="mobile-menu-sub">Joy · Heritage · Science</div>
+  </div>
+  <a href="/ost-our-recipes-v2.html">Our Recipes</a>
+  <a href="/ost-global-lab-v2.html">The Global Lab</a>
+  <a href="/ost-shop.html">Shop the Table</a>
+  <a href="/ost-food-fund.html">The Food Fund</a>
+  <a href="/ost-our-story.html">Our Story</a>
+  <a href="/ost-join-the-table.html" class="gold">Join the Table</a>
+</div>
+
 
 <!-- HERO -->
 <section class="hero">
@@ -319,33 +366,27 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
 
   <div class="vote-grid">
     <div class="vote-card">
-      <div class="vote-card-region">Sub-Saharan Africa</div>
-      <div class="vote-card-org">World Food Programme — School Meals</div>
-      <div class="vote-card-desc">Providing daily school meals to children in food-insecure communities across Sub-Saharan Africa. Each meal is also a reason to stay in school.</div>
-      <div class="vote-bar-wrap"><div class="vote-bar" style="width:45%"></div></div>
-      <div class="vote-pct">45% of current votes</div>
+      <div class="vote-card-region">West Africa</div>
+      <div class="vote-card-org">School Meals Programme</div>
+      <div class="vote-card-desc">Providing daily nutritious meals to children in food-insecure communities across West Africa. Each meal is also a reason to stay in school.</div>
     </div>
     <div class="vote-card">
-      <div class="vote-card-region">South Asia</div>
-      <div class="vote-card-org">Akshaya Patra — Mid-Day Meals</div>
-      <div class="vote-card-desc">The world's largest NGO school meal programme, serving hot lunches to millions of children across India every school day.</div>
-      <div class="vote-bar-wrap"><div class="vote-bar" style="width:32%"></div></div>
-      <div class="vote-pct">32% of current votes</div>
+      <div class="vote-card-region">East Africa</div>
+      <div class="vote-card-org">Community Nutrition Initiative</div>
+      <div class="vote-card-desc">Supporting community-led nutrition programmes for mothers and children under five in food-insecure regions across East Africa.</div>
     </div>
     <div class="vote-card">
       <div class="vote-card-region">Global</div>
-      <div class="vote-card-org">Action Against Hunger — Emergency Response</div>
-      <div class="vote-card-desc">Rapid response nutrition programmes in crisis zones — treating acute malnutrition where the need is most urgent and least visible.</div>
-      <div class="vote-bar-wrap"><div class="vote-bar" style="width:23%"></div></div>
-      <div class="vote-pct">23% of current votes</div>
+      <div class="vote-card-org">Emergency Food Response</div>
+      <div class="vote-card-desc">Rapid nutrition response in crisis zones — treating acute malnutrition where the need is most urgent and least visible.</div>
     </div>
   </div>
 
   <div class="community-note">
     <div class="community-note-icon">⬡</div>
     <div class="community-note-text">
-      <h4>Voting opens when the fund has its first balance.</h4>
-      <p>Once products go on sale and the fund accumulates its first quarter of contributions, the community vote opens. Join the table now to be part of the first vote.</p>
+      <h4>Partners are being confirmed.</h4>
+      <p>We are currently identifying and vetting food security organisations to partner with. Once confirmed and the fund has its first balance, the community vote opens. Join the table to be part of the first vote.</p>
     </div>
   </div>
 </section>
@@ -386,11 +427,11 @@ nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-c
   <div class="footer-inner">
     <div class="footer-logo">Our Sunday Table<div>Baked at 5am · Published every Sunday</div></div>
     <div class="footer-links">
-      <a href="#">Our Recipes</a>
-      <a href="#">The Global Lab</a>
-      <a href="#">Shop the Table</a>
-      <a href="#">The Food Fund</a>
-      <a href="#">Our Story</a>
+      <a href="/ost-our-recipes-v2.html">Our Recipes</a>
+      <a href="/ost-global-lab-v2.html">The Global Lab</a>
+      <a href="/ost-shop.html">Shop the Table</a>
+      <a href="/ost-food-fund.html">The Food Fund</a>
+      <a href="/ost-our-story.html">Our Story</a>
     </div>
     <div class="footer-copy">© Our Sunday Table · oursundaytable.co</div>
   </div>
