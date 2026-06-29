@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OST Publisher · Our Sunday Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1A1A17;--mid:#6B6860;--soft:#A8A29A;
+  --white:#FFFFFF;--off:#F9F8F5;--warm:#F3EDE2;--rule:#E4DDD0;
+  --gold:#C49A2A;--gold-lt:#E8C97A;--gold-bg:#FBF3E0;
+  --black:#0A0A0A;
+  --green:#22C55E;--red:#EF4444;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Jost',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+html,body{height:100%;margin:0;padding:0}
+body{background:var(--off);font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--black);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:300}
+.topbar-left{display:flex;align-items:center;gap:20px}
+.topbar-brand{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--white);letter-spacing:.04em}
+.topbar-sub{font-family:var(--mono);font-size:6px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-lt);margin-top:1px}
+.topbar-back{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);background:none;border:none;cursor:pointer;padding:0;transition:color .2s;display:none}
+.topbar-back:hover{color:var(--white)}
+.topbar-back.visible{display:block}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;padding:9px 16px;border:none;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-ghost{background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15)}
+.btn-ghost:hover{color:var(--white);border-color:rgba(255,255,255,.4)}
+.btn-preview{background:rgba(255,255,255,.1);color:var(--white);border:1px solid rgba(255,255,255,.2)}
+.btn-preview:hover{background:rgba(255,255,255,.18)}
+.btn-publish{background:var(--gold);color:var(--black);font-weight:500}
+.btn-publish:hover{background:var(--gold-lt)}
+.btn-publish:disabled{opacity:.4;cursor:not-allowed}
+.btn-new{background:var(--white);color:var(--black)}
+.btn-new:hover{background:var(--gold-lt)}
+
+/* ── PROGRESS BAR ── */
+.progress-bar{height:2px;background:rgba(255,255,255,.1);position:sticky;top:52px;z-index:299}
+.progress-fill{height:100%;background:var(--gold);transition:width .4s}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ════════════════════════════════
+   DRAFTS DASHBOARD
+════════════════════════════════ */
+.dashboard{max-width:1100px;margin:0 auto;padding:48px 40px}
+.dashboard-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px}
+.dashboard-title{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--ink)}
+.dashboard-sub{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin-top:4px}
+.dashboard-empty{text-align:center;padding:80px 40px;border:1px dashed var(--rule);background:var(--white)}
+.dashboard-empty-icon{font-size:36px;margin-bottom:16px}
+.dashboard-empty-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.dashboard-empty-text{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--soft);margin-bottom:24px}
+.drafts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2px}
+.draft-card{background:var(--white);border:1px solid var(--rule);padding:24px;cursor:pointer;transition:border-color .2s;position:relative}
+.draft-card:hover{border-color:var(--ink)}
+.draft-card-tag{font-family:var(--mono);font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.draft-card-name{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:6px}
+.draft-card-meta{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;color:var(--soft);margin-bottom:16px}
+.draft-card-progress{height:2px;background:var(--rule);margin-bottom:12px}
+.draft-card-progress-fill{height:100%;background:var(--gold);transition:width .3s}
+.draft-card-actions{display:flex;gap:8px}
+.draft-btn{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--rule);background:none;cursor:pointer;color:var(--mid);transition:all .2s}
+.draft-btn:hover{border-color:var(--ink);color:var(--ink)}
+.draft-btn.primary{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.draft-btn.primary:hover{background:var(--gold);border-color:var(--gold);color:var(--black)}
+.draft-btn.danger{color:var(--red);border-color:rgba(239,68,68,.3)}
+.draft-btn.danger:hover{background:var(--red);color:var(--white);border-color:var(--red)}
+.gh-status-bar{background:var(--white);border:1px solid var(--rule);padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.gh-dot{width:8px;height:8px;border-radius:50%;background:var(--rule);flex-shrink:0}
+.gh-dot.connected{background:var(--green)}
+.gh-dot.error{background:var(--red)}
+.gh-status-text{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--mid)}
+.gh-setup-link{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-left:auto;cursor:pointer;border:none;background:none}
+
+/* ════════════════════════════════
+   EDITOR LAYOUT
+════════════════════════════════ */
+.editor-layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 54px)}
+.sidebar{background:var(--white);border-right:1px solid var(--rule);overflow-y:auto;height:calc(100vh - 54px);position:sticky;top:54px}
+.sidebar-section{border-bottom:1px solid var(--rule);padding:20px 22px}
+.sidebar-label{font-family:var(--mono);font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:var(--soft);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sidebar-label .dot{width:5px;height:5px;border-radius:50%;background:var(--rule);flex-shrink:0;transition:background .3s}
+.sidebar-label .dot.done{background:var(--green)}
+.sidebar-label .dot.active{background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+label{display:block;font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);margin-bottom:5px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=date],select,textarea{width:100%;font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--off);border:1px solid var(--rule);padding:8px 10px;outline:none;transition:border-color .2s;resize:none}
+input[type=text]:focus,input[type=date]:focus,select:focus,textarea:focus{border-color:var(--gold);background:var(--white)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23A8A29A'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+textarea{min-height:80px;line-height:1.6}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-family:var(--mono);font-size:7px;color:var(--soft);line-height:1.6;margin-top:5px}
+.required::after{content:' *';color:var(--red);font-style:normal}
+
+/* Image upload */
+.img-zone{border:1.5px dashed var(--rule);padding:14px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--off);margin-top:8px}
+.img-zone:hover,.img-zone.drag-over{border-color:var(--gold);background:var(--gold-bg)}
+.img-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-zone-icon{font-size:18px;margin-bottom:4px}
+.img-zone-label{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;color:var(--mid)}
+.img-preview{width:100%;aspect-ratio:16/9;object-fit:cover;display:none;margin-top:8px;border:1px solid var(--rule)}
+.img-remove{font-family:var(--mono);font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);background:none;border:none;cursor:pointer;margin-top:4px;padding:0;display:none}
+
+/* GitHub settings */
+.gh-token-wrap{position:relative}
+.gh-token-wrap input{padding-right:36px}
+.gh-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:12px;color:var(--soft)}
+.gh-connect-btn{width:100%;margin-top:10px;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;padding:10px;border:none;cursor:pointer;background:var(--ink);color:var(--white);transition:background .2s}
+.gh-connect-btn:hover{background:var(--gold)}
+.gh-result{font-family:var(--mono);font-size:7.5px;margin-top:6px}
+
+/* Editor main */
+.editor-main{padding:32px 36px;overflow-y:auto}
+.editor-header{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.editor-title{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink)}
+.editor-title-sub{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--soft);margin-top:3px}
+.autosave-badge{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;color:var(--soft);display:flex;align-items:center;gap:6px;flex-shrink:0;padding-top:6px}
+.autosave-dot{width:6px;height:6px;border-radius:50%;background:var(--rule)}
+.autosave-dot.saved{background:var(--green)}
+.autosave-dot.saving{background:var(--gold);animation:pulse 1s infinite}
+
+/* Content blocks */
+.content-block{background:var(--white);border:1px solid var(--rule);margin-bottom:12px}
+.block-header{padding:13px 18px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background .15s}
+.block-header:hover{background:var(--off)}
+.block-title{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:10px}
+.block-num{width:20px;height:20px;background:var(--off);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--mid);flex-shrink:0;font-family:var(--mono)}
+.block-num.done{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.block-toggle{font-size:10px;color:var(--soft)}
+.block-body{padding:18px;display:none}
+.block-body.open{display:block}
+.wc{font-family:var(--mono);font-size:7px;color:var(--soft);text-align:right;margin-top:3px}
+.wc.good{color:var(--green)}
+.wc.warn{color:var(--gold)}
+.divider{height:1px;background:var(--rule);margin:14px 0}
+
+/* Status bar */
+.status-bar{background:var(--off);border-top:1px solid var(--rule);padding:9px 28px;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:7.5px;color:var(--soft);position:fixed;bottom:0;left:0;right:0;z-index:100}
+
+/* Preview modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,10,10,.85);z-index:400;display:none;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--white);width:94vw;max-width:980px;max-height:92vh;display:flex;flex-direction:column;border:1px solid var(--rule)}
+.modal-header{padding:13px 18px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-title{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--mid)}
+.modal-body{overflow-y:auto;flex:1}
+.modal-body iframe{width:100%;height:72vh;border:none;display:block}
+.modal-footer{padding:13px 18px;border-top:1px solid var(--rule);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* Toast */
+.toast{position:fixed;bottom:56px;right:24px;background:var(--black);color:var(--white);font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;padding:11px 16px;z-index:500;opacity:0;transform:translateY(6px);transition:all .25s;pointer-events:none;max-width:280px}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Confirm dialog */
+.confirm-backdrop{position:fixed;inset:0;background:rgba(10,10,10,.7);z-index:600;display:none;align-items:center;justify-content:center}
+.confirm-backdrop.open{display:flex}
+.confirm-box{background:var(--white);padding:32px;max-width:380px;width:90%;border:1px solid var(--rule)}
+.confirm-title{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:8px}
+.confirm-text{font-size:13px;font-weight:300;color:var(--mid);line-height:1.7;margin-bottom:24px}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="topbar-brand">Our Sunday Table</div>
+      <div class="topbar-sub">Recipe Publisher</div>
+    </div>
+    <button class="topbar-back" id="backBtn" onclick="showDashboard()">← All Drafts</button>
+  </div>
+  <div class="topbar-actions" id="topbarActions">
+    <button class="btn btn-new" onclick="newDraft()">+ New Draft</button>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<!-- ════════ DRAFTS DASHBOARD ════════ -->
+<div class="screen active" id="screen-dashboard">
+  <div class="dashboard">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-title">Your Drafts</div>
+        <div class="dashboard-sub" id="draftCount">Loading...</div>
+      </div>
+    </div>
+
+    <!-- GitHub connection status -->
+    <div class="gh-status-bar" id="ghStatusBar">
+      <div class="gh-dot" id="ghDot"></div>
+      <span class="gh-status-text" id="ghStatusText">Checking GitHub connection...</span>
+      <button class="gh-setup-link" onclick="showSettings()">Settings →</button>
+    </div>
+
+    <div id="draftsContainer">
+      <div class="dashboard-empty">
+        <div class="dashboard-empty-icon">🥐</div>
+        <div class="dashboard-empty-title">No drafts yet</div>
+        <div class="dashboard-empty-text">Start writing your first recipe post</div>
+        <button class="btn btn-new" style="background:var(--ink);color:var(--white)" onclick="newDraft()">+ Start a new recipe</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SETTINGS SCREEN ════════ -->
+<div class="screen" id="screen-settings">
+  <div class="dashboard">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-title">GitHub Settings</div>
+        <div class="dashboard-sub">Your token is stored in this browser only — never shared anywhere except GitHub directly</div>
+      </div>
+    </div>
+    <div style="max-width:480px;background:var(--white);border:1px solid var(--rule);padding:32px">
+      <label>GitHub Token <span style="color:var(--soft);font-size:7px">(ghp_...)</span></label>
+      <div class="gh-token-wrap">
+        <input type="password" id="ghToken" placeholder="Paste your token here" autocomplete="off" oninput="saveGhSettings()">
+        <button class="gh-eye" onclick="toggleTokenVis()" id="tokenEye">👁</button>
+      </div>
+      <label>Repository Name</label>
+      <input type="text" id="ghRepo" placeholder="OurSundayTable" value="OurSundayTable" oninput="saveGhSettings()">
+      <label>GitHub Username</label>
+      <input type="text" id="ghUser" placeholder="littlesundaydinner-droid" value="littlesundaydinner-droid" oninput="saveGhSettings()">
+      <button class="gh-connect-btn" onclick="testConnection()">Test Connection</button>
+      <div class="gh-result" id="ghResult"></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn btn-ghost" style="background:var(--ink);color:var(--white);border:none" onclick="showDashboard()">← Back to Drafts</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ EDITOR ════════ -->
+<div class="screen" id="screen-editor">
+  <div class="editor-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- Recipe Details -->
+      <div class="sidebar-section">
+        <div class="sidebar-label"><span class="dot active" id="dot-meta"></span>Recipe Details</div>
+        <label class="required">Recipe Name</label>
+        <input type="text" id="recipeName" placeholder="e.g. Dark Chocolate Loaf" oninput="onFieldChange()">
+        <label>Subtitle / Hook</label>
+        <input type="text" id="recipeSubtitle" placeholder="e.g. Three Ways · West African Cacao">
+        <label class="required">African Region</label>
+        <select id="region" onchange="onFieldChange()">
+          <option value="">— Select region —</option>
+          <option>West Africa · Nigeria</option>
+          <option>West Africa · Ghana</option>
+          <option>West Africa · Senegal</option>
+          <option>East Africa · Kenya</option>
+          <option>East Africa · Ethiopia</option>
+          <option>North Africa · Morocco</option>
+          <option>Southern Africa</option>
+          <option>Pan-African</option>
+          <option>West Africa · Ireland</option>
+          <option>West Africa · Americas</option>
+        </select>
+        <div class="field-row">
+          <div>
+            <label class="required">Category</label>
+            <select id="category" onchange="onFieldChange()">
+              <option value="">— Type —</option>
+              <option>Cake</option><option>Bread</option><option>Cookie</option>
+              <option>Bars</option><option>Tart</option><option>Muffin</option>
+              <option>Loaf</option><option>Pastry</option>
+            </select>
+          </div>
+          <div>
+            <label class="required">Level</label>
+            <select id="level" onchange="onFieldChange()">
+              <option value="">— Level —</option>
+              <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+            </select>
+          </div>
+        </div>
+        <label>Publish Date</label>
+        <input type="date" id="publishDate">
+        <label>Edition / Series</label>
+        <input type="text" id="edition" placeholder="e.g. Sunday Bakes · Vol. 12">
+      </div>
+
+      <!-- Recipe Stats -->
+      <div class="sidebar-section">
+        <div class="sidebar-label"><span class="dot" id="dot-stats"></span>Recipe Stats</div>
+        <div class="field-row">
+          <div><label>Prep Time</label><input type="text" id="prepTime" placeholder="20 mins"></div>
+          <div><label>Bake Time</label><input type="text" id="bakeTime" placeholder="45 mins"></div>
+        </div>
+        <div class="field-row">
+          <div><label>Servings</label><input type="text" id="servings" placeholder="8–10"></div>
+          <div><label>Temp</label><input type="text" id="temp" placeholder="175°C"></div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="sidebar-section">
+        <div class="sidebar-label"><span class="dot" id="dot-images"></span>Photos</div>
+        <div class="hint" style="margin-bottom:10px">Upload straight from your camera roll.</div>
+
+        <label>Hero Image <span style="color:var(--soft);font-size:6.5px">(full bleed · landscape)</span></label>
+        <div class="img-zone" id="zone-hero" ondragover="handleDrag(event,'hero')" ondragleave="handleDragLeave('hero')" ondrop="handleDrop(event,'hero')">
+          <input type="file" accept="image/*" onchange="handleFile(event,'hero')">
+          <div class="img-zone-icon">📸</div>
+          <div class="img-zone-label">Tap to upload</div>
+        </div>
+        <img id="preview-hero" class="img-preview">
+        <button class="img-remove" id="remove-hero" onclick="removeImg('hero')">✕ Remove</button>
+
+        <label style="margin-top:14px">Food Image 1</label>
+        <div class="img-zone" id="zone-img1" ondragover="handleDrag(event,'img1')" ondragleave="handleDragLeave('img1')" ondrop="handleDrop(event,'img1')">
+          <input type="file" accept="image/*" onchange="handleFile(event,'img1')">
+          <div class="img-zone-icon">🍰</div>
+          <div class="img-zone-label">Tap to upload</div>
+        </div>
+        <img id="preview-img1" class="img-preview">
+        <button class="img-remove" id="remove-img1" onclick="removeImg('img1')">✕ Remove</button>
+
+        <label style="margin-top:14px">Food Image 2</label>
+        <div class="img-zone" id="zone-img2" ondragover="handleDrag(event,'img2')" ondragleave="handleDragLeave('img2')" ondrop="handleDrop(event,'img2')">
+          <input type="file" accept="image/*" onchange="handleFile(event,'img2')">
+          <div class="img-zone-icon">✨</div>
+          <div class="img-zone-label">Tap to upload</div>
+        </div>
+        <img id="preview-img2" class="img-preview">
+        <button class="img-remove" id="remove-img2" onclick="removeImg('img2')">✕ Remove</button>
+
+        <label style="margin-top:14px">Food Image 3</label>
+        <div class="img-zone" id="zone-img3" ondragover="handleDrag(event,'img3')" ondragleave="handleDragLeave('img3')" ondrop="handleDrop(event,'img3')">
+          <input type="file" accept="image/*" onchange="handleFile(event,'img3')">
+          <div class="img-zone-icon">🫶</div>
+          <div class="img-zone-label">Tap to upload</div>
+        </div>
+        <img id="preview-img3" class="img-preview">
+        <button class="img-remove" id="remove-img3" onclick="removeImg('img3')">✕ Remove</button>
+      </div>
+
+      <!-- Next Recipe Teaser -->
+      <div class="sidebar-section">
+        <div class="sidebar-label"><span class="dot" id="dot-next"></span>Next Recipe Teaser</div>
+        <label>Next Recipe Name</label>
+        <input type="text" id="nextName" placeholder="e.g. Zobo Bundt Cake">
+        <label>Next Publish Date</label>
+        <input type="date" id="nextDate">
+      </div>
+
+    </aside>
+
+    <!-- MAIN WRITING AREA -->
+    <main class="editor-main" style="padding-bottom:80px">
+      <div class="editor-header">
+        <div>
+          <div class="editor-title" id="liveTitle">New Recipe</div>
+          <div class="editor-title-sub">Write each section below. Preview anytime.</div>
+        </div>
+        <div class="autosave-badge">
+          <div class="autosave-dot" id="autosaveDot"></div>
+          <span id="autosaveText">Not saved</span>
+        </div>
+      </div>
+
+      <!-- 1. OPENING -->
+      <div class="content-block">
+        <div class="block-header" onclick="toggleBlock('opening')">
+          <div class="block-title"><div class="block-num" id="num-opening">1</div>Opening — Temie's Voice</div>
+          <div class="block-toggle" id="toggle-opening">▼</div>
+        </div>
+        <div class="block-body open" id="body-opening">
+          <div class="hint" style="margin-bottom:12px">2–3 paragraphs. Set up the cultural tension or surprise. End with a hook into Heritage. Write exactly how you speak.</div>
+          <label class="required">Opening paragraphs</label>
+          <textarea id="opening" rows="8" placeholder="Go straight into the story. No section title needed. E.g. 'Last Sunday I pulled this from the oven at 5:45pm and the light came in and I understood everything...'" oninput="wordCount(this,'wc-opening');onFieldChange()"></textarea>
+          <div class="wc" id="wc-opening">0 words · aim for 150–250</div>
+        </div>
+      </div>
+
+      <!-- 2. HERITAGE -->
+      <div class="content-block">
+        <div class="block-header" onclick="toggleBlock('heritage')">
+          <div class="block-title"><div class="block-num" id="num-heritage">2</div>Heritage</div>
+          <div class="block-toggle" id="toggle-heritage">▶</div>
+        </div>
+        <div class="block-body" id="body-heritage">
+          <div class="hint" style="margin-bottom:12px">The untold story. Africa's ownership of this ingredient or technique. Ends with a pull quote.</div>
+          <label>Heritage Headline</label>
+          <input type="text" id="heritageHeadline" placeholder="e.g. The Continent That Gave the World Chocolate">
+          <label>Heritage Subhead</label>
+          <input type="text" id="heritageSubhead" placeholder="e.g. And how Nigeria perfected the bitter note.">
+          <label class="required">Heritage Body</label>
+          <textarea id="heritage" rows="10" placeholder="Write 3–4 paragraphs about the African heritage story..." oninput="wordCount(this,'wc-heritage');onFieldChange()"></textarea>
+          <div class="wc" id="wc-heritage">0 words · aim for 250–400</div>
+          <div class="divider"></div>
+          <label class="required">Pull Quote</label>
+          <textarea id="pullQuote" rows="3" placeholder="One powerful sentence. E.g. 'Africa did not discover chocolate. Africa invented it.'"></textarea>
+          <div class="hint">Appears in a dark block. Make it land hard.</div>
+          <div class="divider"></div>
+          <label>Heritage Closing</label>
+          <textarea id="heritageClose" rows="4" placeholder="1–2 paragraphs connecting heritage to this specific recipe..."></textarea>
+        </div>
+      </div>
+
+      <!-- 3. SCIENCE -->
+      <div class="content-block">
+        <div class="block-header" onclick="toggleBlock('science')">
+          <div class="block-title"><div class="block-num" id="num-science">3</div>The Science</div>
+          <div class="block-toggle" id="toggle-science">▶</div>
+        </div>
+        <div class="block-body" id="body-science">
+          <div class="hint" style="margin-bottom:12px">Why did you use the technique you used? Para 1: what most bakers do. Para 2: what OST does instead and why.</div>
+          <label>Science Headline</label>
+          <input type="text" id="scienceHeadline" placeholder="e.g. Why I Bloom the Cocoa in Hot Butter.">
+          <label class="required">Science Body</label>
+          <textarea id="science" rows="8" placeholder="Para 1: the standard method. Para 2: what you do differently and why..." oninput="wordCount(this,'wc-science');onFieldChange()"></textarea>
+          <div class="wc" id="wc-science">0 words</div>
+          <div class="divider"></div>
+          <label class="required">The Chemistry Box</label>
+          <textarea id="chemistry" rows="6" placeholder="3–4 paragraphs of molecular detail. Use *italics* for key terms..."></textarea>
+          <div class="hint">Appears in a warm amber box. This is the baking science deep dive.</div>
+          <div class="divider"></div>
+          <label>Science Closing</label>
+          <textarea id="scienceClose" rows="4" placeholder="2 paragraphs connecting science back to taste and sensation..."></textarea>
+        </div>
+      </div>
+
+      <!-- 4. JOY -->
+      <div class="content-block">
+        <div class="block-header" onclick="toggleBlock('joy')">
+          <div class="block-title"><div class="block-num" id="num-joy">4</div>Joy Through Precision</div>
+          <div class="block-toggle" id="toggle-joy">▶</div>
+        </div>
+        <div class="block-body" id="body-joy">
+          <div class="hint" style="margin-bottom:12px">Your most personal voice. A journal entry, not a blog post. The CEO. The children. The chaos of the week. No pulling back.</div>
+          <label>Joy Headline</label>
+          <input type="text" id="joyHeadline" placeholder="e.g. Why I Bake Before the World Wakes Up.">
+          <label class="required">Joy Body</label>
+          <textarea id="joy" rows="12" placeholder="Write 4–5 paragraphs. Your most honest voice. This is the section people come back for..." oninput="wordCount(this,'wc-joy');onFieldChange()"></textarea>
+          <div class="wc" id="wc-joy">0 words · aim for 300–450</div>
+          <div class="divider"></div>
+          <label class="required">Closing Line</label>
+          <input type="text" id="closingLine" placeholder="e.g. May your Sundays be quiet, your butter cold, and your oven honest.">
+          <div class="hint">Your signature sign-off. Every post ends with this.</div>
+        </div>
+      </div>
+
+      <!-- 5. RECIPE CARD -->
+      <div class="content-block">
+        <div class="block-header" onclick="toggleBlock('recipe')">
+          <div class="block-title"><div class="block-num" id="num-recipe">5</div>Recipe Card</div>
+          <div class="block-toggle" id="toggle-recipe">▶</div>
+        </div>
+        <div class="block-body" id="body-recipe">
+          <div class="hint" style="margin-bottom:12px">One ingredient per line. One step per line — they'll be numbered automatically.</div>
+          <label class="required">Ingredients</label>
+          <textarea id="ingredients" rows="12" placeholder="225g unsalted butter, softened&#10;200g dark chocolate (70%), chopped&#10;3 large eggs, room temperature&#10;180g caster sugar&#10;..."></textarea>
+          <div class="divider"></div>
+          <label class="required">Method</label>
+          <textarea id="method" rows="14" placeholder="Preheat your oven to 175°C / 350°F. Line a 900g loaf tin with parchment.&#10;Melt the chocolate and butter together over a bain-marie, stirring gently.&#10;..."></textarea>
+        </div>
+      </div>
+
+      <div style="height:80px"></div>
+    </main>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="statusBar" style="display:none">
+  <div class="autosave-dot" id="statusDot"></div>
+  <span id="statusText">Start writing</span>
+  <span style="margin-left:auto;color:var(--rule)">OST Publisher v2</span>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-backdrop" id="previewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Preview — <span id="previewName">Recipe</span></span>
+      <button class="modal-close" onclick="closePreview()">✕</button>
+    </div>
+    <div class="modal-body"><iframe id="previewFrame" srcdoc=""></iframe></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="color:var(--mid);border-color:var(--rule)" onclick="closePreview()">Back to editing</button>
+      <button class="btn btn-publish" onclick="publishRecipe()">Publish this post →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-text" id="confirmText">This action cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" style="color:var(--mid);border-color:var(--rule)" onclick="closeConfirm()">Cancel</button>
+      <button class="btn" id="confirmOk" style="background:var(--red);color:var(--white)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const images = { hero: null, img1: null, img2: null, img3: null };
+let currentDraftId = null;
+let autoSaveTimer = null;
+let ghSettings = { token: '', repo: 'OurSundayTable', user: 'littlesundaydinner-droid' };
+
+// ═══════════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ═══════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('backBtn').classList.toggle('visible', id === 'editor');
+  document.getElementById('statusBar').style.display = id === 'editor' ? 'flex' : 'none';
+  const actions = document.getElementById('topbarActions');
+  if (id === 'dashboard') {
+    actions.innerHTML = '<button class="btn btn-new" onclick="newDraft()">+ New Draft</button>';
+  } else if (id === 'editor') {
+    actions.innerHTML = `
+      <button class="btn btn-ghost" onclick="saveDraftNow()">💾 Save</button>
+      <button class="btn btn-preview" onclick="openPreview()">👁 Preview</button>
+      <button class="btn btn-publish" id="publishBtn" onclick="publishRecipe()">Publish →</button>`;
+  } else {
+    actions.innerHTML = '';
+  }
+}
+
+function showDashboard() {
+  showScreen('dashboard');
+  loadDraftsList();
+}
+
+function showSettings() {
+  showScreen('settings');
+  loadGhSettings();
+}
+
+// ═══════════════════════════════════════════════════
+// GITHUB SETTINGS
+// ═══════════════════════════════════════════════════
+function saveGhSettings() {
+  ghSettings.token = document.getElementById('ghToken').value;
+  ghSettings.repo = document.getElementById('ghRepo').value || 'OurSundayTable';
+  ghSettings.user = document.getElementById('ghUser').value || 'littlesundaydinner-droid';
+  try { localStorage.setItem('ost-gh', JSON.stringify(ghSettings)); } catch(e) {}
+}
+
+function loadGhSettings() {
+  try {
+    const raw = localStorage.getItem('ost-gh');
+    if (raw) ghSettings = { ...ghSettings, ...JSON.parse(raw) };
+  } catch(e) {}
+  const t = document.getElementById('ghToken');
+  const r = document.getElementById('ghRepo');
+  const u = document.getElementById('ghUser');
+  if (t) t.value = ghSettings.token || '';
+  if (r) r.value = ghSettings.repo || 'OurSundayTable';
+  if (u) u.value = ghSettings.user || 'littlesundaydinner-droid';
+}
+
+function toggleTokenVis() {
+  const inp = document.getElementById('ghToken');
+  const eye = document.getElementById('tokenEye');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  eye.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+async function testConnection() {
+  const result = document.getElementById('ghResult');
+  result.textContent = 'Testing...';
+  result.style.color = 'var(--mid)';
+  try {
+    // Use the user endpoint — simpler, always exists, good auth test
+    const res = await fetch(`https://api.github.com/user`, {
+      headers: {
+        'Authorization': `Bearer ${ghSettings.token}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+    if (res.ok) {
+      const d = await res.json();
+      result.textContent = `✓ Connected as ${d.login}`;
+      result.style.color = 'var(--green)';
+      showToast('GitHub connected ✓');
+      updateGhStatusBar(true);
+    } else if (res.status === 401) {
+      result.textContent = '✕ Token invalid — generate a new one';
+      result.style.color = 'var(--red)';
+      updateGhStatusBar(false);
+    } else {
+      result.textContent = `✕ Error ${res.status}`;
+      result.style.color = 'var(--red)';
+      updateGhStatusBar(false);
+    }
+  } catch(e) {
+    result.textContent = '✕ ' + e.message;
+    result.style.color = 'var(--red)';
+    updateGhStatusBar(false);
+  }
+}
+
+function ghFetch(path, options = {}) {
+  return fetch(`https://api.github.com/repos/${ghSettings.user}/${ghSettings.repo}/${path}`, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${ghSettings.token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+}
+
+async function updateGhStatusBar(connected) {
+  const dot = document.getElementById('ghDot');
+  const text = document.getElementById('ghStatusText');
+  if (!dot || !text) return;
+  dot.className = 'gh-dot ' + (connected ? 'connected' : 'error');
+  text.textContent = connected
+    ? `Connected · drafts save to github.com/${ghSettings.user}/${ghSettings.repo}/drafts/`
+    : 'Not connected — add your GitHub token in Settings';
+}
+
+// ═══════════════════════════════════════════════════
+// GITHUB FILE OPS
+// ═══════════════════════════════════════════════════
+async function ghGetFile(path) {
+  const res = await ghFetch(`contents/${path}`);
+  if (!res.ok) return null;
+  const d = await res.json();
+  return { content: JSON.parse(atob(d.content.replace(/\n/g,''))), sha: d.sha };
+}
+
+async function ghPutFile(path, content, commitMsg, sha = null) {
+  const body = {
+    message: commitMsg,
+    content: btoa(unescape(encodeURIComponent(typeof content === 'string' ? content : JSON.stringify(content, null, 2))))
+  };
+  if (sha) body.sha = sha;
+  const res = await ghFetch(`contents/${path}`, { method: 'PUT', body: JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message || `GitHub error ${res.status}`); }
+  return res.json();
+}
+
+async function ghDeleteFile(path, sha, commitMsg) {
+  const res = await ghFetch(`contents/${path}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ message: commitMsg, sha })
+  });
+  if (!res.ok) throw new Error(`GitHub error ${res.status}`);
+}
+
+// ═══════════════════════════════════════════════════
+// DRAFTS SYSTEM
+// ═══════════════════════════════════════════════════
+function makeDraftId(name) {
+  return (name || 'draft').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') + '-' + Date.now();
+}
+
+async function loadDraftsList() {
+  const container = document.getElementById('draftsContainer');
+  const countEl = document.getElementById('draftCount');
+  countEl.textContent = 'Loading from GitHub...';
+
+  if (!ghSettings.token) {
+    updateGhStatusBar(false);
+    countEl.textContent = 'Connect GitHub to save drafts across devices';
+    container.innerHTML = `<div class="dashboard-empty">
+      <div class="dashboard-empty-icon">🔑</div>
+      <div class="dashboard-empty-title">Connect GitHub first</div>
+      <div class="dashboard-empty-text">Go to Settings and add your token — then your drafts will be available on every device</div>
+      <button class="btn" style="background:var(--ink);color:var(--white)" onclick="showSettings()">Open Settings →</button>
+    </div>`;
+    return;
+  }
+
+  try {
+    // First verify the token works at all
+    const authCheck = await fetch(`https://api.github.com/user`, {
+      headers: { 'Authorization': `Bearer ${ghSettings.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!authCheck.ok) {
+      updateGhStatusBar(false);
+      countEl.textContent = 'Token invalid — check Settings';
+      container.innerHTML = `<div class="dashboard-empty">
+        <div class="dashboard-empty-icon">🔑</div>
+        <div class="dashboard-empty-title">Token not working</div>
+        <div class="dashboard-empty-text">Go to Settings and check your GitHub token</div>
+        <button class="btn" style="background:var(--ink);color:var(--white)" onclick="showSettings()">Open Settings →</button>
+      </div>`;
+      return;
+    }
+
+    const res = await ghFetch('contents/drafts');
+    updateGhStatusBar(true);
+
+    if (!res.ok && res.status === 404) {
+      countEl.textContent = '0 drafts';
+      container.innerHTML = `<div class="dashboard-empty">
+        <div class="dashboard-empty-icon">🥐</div>
+        <div class="dashboard-empty-title">No drafts yet</div>
+        <div class="dashboard-empty-text">Start writing your first recipe post</div>
+        <button class="btn btn-new" style="background:var(--ink);color:var(--white)" onclick="newDraft()">+ Start a new recipe</button>
+      </div>`;
+      return;
+    }
+
+    const files = await res.json();
+    const jsonFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.json')) : [];
+
+    if (jsonFiles.length === 0) {
+      countEl.textContent = '0 drafts';
+      container.innerHTML = `<div class="dashboard-empty">
+        <div class="dashboard-empty-icon">🥐</div>
+        <div class="dashboard-empty-title">No drafts yet</div>
+        <div class="dashboard-empty-text">Start writing your first recipe post</div>
+        <button class="btn btn-new" style="background:var(--ink);color:var(--white)" onclick="newDraft()">+ Start a new recipe</button>
+      </div>`;
+      return;
+    }
+
+    // Load each draft's metadata
+    countEl.textContent = `${jsonFiles.length} draft${jsonFiles.length !== 1 ? 's' : ''}`;
+    const drafts = [];
+    for (const f of jsonFiles) {
+      try {
+        const d = await ghGetFile(`drafts/${f.name}`);
+        if (d) drafts.push({ id: f.name.replace('.json',''), sha: d.sha, ...d.content });
+      } catch(e) {}
+    }
+
+    // Sort by updatedAt descending
+    drafts.sort((a,b) => new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+
+    container.innerHTML = '<div class="drafts-grid">' + drafts.map(d => {
+      const pct = calcProgress(d);
+      const date = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'Unknown';
+      return `<div class="draft-card">
+        <div class="draft-card-tag">${d.region || 'No region'} · ${d.category || 'No category'}</div>
+        <div class="draft-card-name">${d.recipeName || 'Untitled Recipe'}</div>
+        <div class="draft-card-meta">Last saved ${date}</div>
+        <div class="draft-card-progress"><div class="draft-card-progress-fill" style="width:${pct}%"></div></div>
+        <div class="draft-card-actions">
+          <button class="draft-btn primary" onclick="openDraft('${d.id}')">Continue →</button>
+          <button class="draft-btn" onclick="previewDraft('${d.id}')">Preview</button>
+          <button class="draft-btn danger" onclick="confirmDeleteDraft('${d.id}','${(d.recipeName||'').replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+
+  } catch(e) {
+    updateGhStatusBar(false);
+    countEl.textContent = 'Error loading drafts';
+    container.innerHTML = `<div class="dashboard-empty">
+      <div class="dashboard-empty-icon">⚠️</div>
+      <div class="dashboard-empty-title">Couldn't load drafts</div>
+      <div class="dashboard-empty-text">${e.message}</div>
+      <button class="btn" style="background:var(--ink);color:var(--white)" onclick="loadDraftsList()">Try again</button>
+    </div>`;
+  }
+}
+
+function calcProgress(data) {
+  const fields = ['recipeName','region','category','level','opening','heritage','pullQuote','science','chemistry','joy','closingLine','ingredients','method'];
+  const filled = fields.filter(k => data[k] && data[k].trim()).length;
+  return Math.round((filled / fields.length) * 100);
+}
+
+function newDraft() {
+  currentDraftId = 'draft-' + Date.now();
+  clearEditor();
+  showScreen('editor');
+  setAutoSave('Not saved yet');
+}
+
+async function openDraft(id) {
+  currentDraftId = id;
+  clearEditor();
+  showScreen('editor');
+  setAutoSave('Loading...');
+  try {
+    const d = await ghGetFile(`drafts/${id}.json`);
+    if (d) {
+      fillEditor(d.content);
+      setAutoSave('Draft loaded ✓');
+    }
+  } catch(e) {
+    setAutoSave('Error loading draft');
+    showToast('Could not load draft — ' + e.message);
+  }
+}
+
+async function previewDraft(id) {
+  try {
+    const d = await ghGetFile(`drafts/${id}.json`);
+    if (d) {
+      const html = buildPage(d.content, {});
+      document.getElementById('previewFrame').srcdoc = html;
+      document.getElementById('previewName').textContent = d.content.recipeName || 'Recipe';
+      document.getElementById('previewModal').classList.add('open');
+    }
+  } catch(e) { showToast('Could not load preview'); }
+}
+
+function confirmDeleteDraft(id, name) {
+  document.getElementById('confirmTitle').textContent = 'Delete this draft?';
+  document.getElementById('confirmText').textContent = `"${name || 'Untitled Recipe'}" will be permanently deleted from GitHub. This cannot be undone.`;
+  document.getElementById('confirmOk').onclick = () => deleteDraft(id);
+  document.getElementById('confirmOk').textContent = 'Delete draft';
+  document.getElementById('confirmOk').style.background = 'var(--red)';
+  document.getElementById('confirmBackdrop').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmBackdrop').classList.remove('open');
+}
+
+async function deleteDraft(id) {
+  closeConfirm();
+  try {
+    const d = await ghGetFile(`drafts/${id}.json`);
+    if (d) await ghDeleteFile(`drafts/${id}.json`, d.sha, `Delete draft: ${id}`);
+    showToast('Draft deleted ✓');
+    loadDraftsList();
+  } catch(e) {
+    showToast('Could not delete — ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// EDITOR
+// ═══════════════════════════════════════════════════
+function clearEditor() {
+  const fields = ['recipeName','recipeSubtitle','region','category','level','publishDate','edition',
+    'prepTime','bakeTime','servings','temp','opening','heritageHeadline','heritageSubhead',
+    'heritage','pullQuote','heritageClose','scienceHeadline','science','chemistry','scienceClose',
+    'joyHeadline','joy','closingLine','ingredients','method','nextName','nextDate'];
+  fields.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  Object.keys(images).forEach(k => removeImg(k));
+  document.getElementById('liveTitle').textContent = 'New Recipe';
+  document.getElementById('previewName').textContent = 'Recipe';
+  updateProgress();
+}
+
+function fillEditor(data) {
+  const fields = ['recipeName','recipeSubtitle','region','category','level','publishDate','edition',
+    'prepTime','bakeTime','servings','temp','opening','heritageHeadline','heritageSubhead',
+    'heritage','pullQuote','heritageClose','scienceHeadline','science','chemistry','scienceClose',
+    'joyHeadline','joy','closingLine','ingredients','method','nextName','nextDate'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id]) el.value = data[id];
+  });
+  // Restore images if stored
+  if (data._images) {
+    Object.keys(data._images).forEach(slot => {
+      if (data._images[slot]) {
+        images[slot] = data._images[slot];
+        const prev = document.getElementById('preview-' + slot);
+        const rem = document.getElementById('remove-' + slot);
+        const zone = document.getElementById('zone-' + slot);
+        if (prev) { prev.src = data._images[slot]; prev.style.display = 'block'; }
+        if (rem) rem.style.display = 'block';
+        if (zone) zone.style.display = 'none';
+      }
+    });
+  }
+  updateProgress();
+  const name = data.recipeName || 'Untitled Recipe';
+  document.getElementById('liveTitle').textContent = name;
+  document.getElementById('previewName').textContent = name;
+}
+
+function collectData() {
+  const fields = ['recipeName','recipeSubtitle','region','category','level','publishDate','edition',
+    'prepTime','bakeTime','servings','temp','opening','heritageHeadline','heritageSubhead',
+    'heritage','pullQuote','heritageClose','scienceHeadline','science','chemistry','scienceClose',
+    'joyHeadline','joy','closingLine','ingredients','method','nextName','nextDate'];
+  const data = {};
+  fields.forEach(id => { data[id] = document.getElementById(id)?.value || ''; });
+  data._images = { ...images };
+  data.updatedAt = new Date().toISOString();
+  return data;
+}
+
+function onFieldChange() {
+  updateProgress();
+  const name = document.getElementById('recipeName')?.value || 'New Recipe';
+  document.getElementById('liveTitle').textContent = name;
+  document.getElementById('previewName').textContent = name;
+  scheduleAutoSave();
+}
+
+function scheduleAutoSave() {
+  setAutoSave('Unsaved changes...', 'saving');
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveDraftNow, 6000);
+}
+
+async function saveDraftNow() {
+  if (!currentDraftId) currentDraftId = 'draft-' + Date.now();
+  setAutoSave('Saving to GitHub...', 'saving');
+  const data = collectData();
+  if (!ghSettings.token) {
+    setAutoSave('No GitHub token — add in Settings');
+    showToast('Add your GitHub token in Settings to save drafts');
+    return;
+  }
+  try {
+    let sha = null;
+    try { const existing = await ghGetFile(`drafts/${currentDraftId}.json`); if(existing) sha = existing.sha; } catch(e) {}
+    await ghPutFile(`drafts/${currentDraftId}.json`, data, `Save draft: ${data.recipeName || currentDraftId}`, sha);
+    setAutoSave('Saved to GitHub · ' + new Date().toLocaleTimeString(), 'saved');
+    showToast('Draft saved ✓');
+  } catch(e) {
+    setAutoSave('Save failed — ' + e.message);
+    showToast('Save failed: ' + e.message);
+  }
+}
+
+function setAutoSave(text, state) {
+  const dot = document.getElementById('autosaveDot');
+  const el = document.getElementById('autosaveText');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  if (el) el.textContent = text;
+  if (statusText) statusText.textContent = text;
+  const cls = state === 'saved' ? 'saved' : state === 'saving' ? 'saving' : '';
+  if (dot) dot.className = 'autosave-dot ' + cls;
+  if (statusDot) statusDot.className = 'autosave-dot ' + cls;
+}
+
+// ═══════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════
+function updateProgress() {
+  const fields = ['recipeName','region','category','level','opening','heritage','pullQuote','science','chemistry','joy','closingLine','ingredients','method'];
+  const filled = fields.filter(id => document.getElementById(id)?.value?.trim()).length;
+  const imgCount = Object.values(images).filter(Boolean).length;
+  const pct = Math.round(((filled + Math.min(imgCount,2)) / (fields.length + 2)) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  const pb = document.getElementById('publishBtn');
+  if (pb) pb.disabled = pct < 50;
+}
+
+// ═══════════════════════════════════════════════════
+// BLOCK TOGGLE
+// ═══════════════════════════════════════════════════
+function toggleBlock(id) {
+  const body = document.getElementById('body-' + id);
+  const toggle = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  toggle.textContent = isOpen ? '▶' : '▼';
+}
+
+// ═══════════════════════════════════════════════════
+// WORD COUNT
+// ═══════════════════════════════════════════════════
+function wordCount(el, targetId) {
+  const words = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+  const el2 = document.getElementById(targetId);
+  if (!el2) return;
+  const base = el2.textContent.split('·')[1] || '';
+  el2.textContent = words + ' words' + (base ? ' ·' + base : '');
+  el2.className = 'wc' + (words > 80 ? ' good' : words > 30 ? ' warn' : '');
+}
+
+// ═══════════════════════════════════════════════════
+// IMAGE HANDLING
+// ═══════════════════════════════════════════════════
+function handleFile(e, slot) { const f = e.target.files[0]; if(f) readImage(f, slot); }
+function handleDrag(e, slot) { e.preventDefault(); document.getElementById('zone-'+slot).classList.add('drag-over'); }
+function handleDragLeave(slot) { document.getElementById('zone-'+slot).classList.remove('drag-over'); }
+function handleDrop(e, slot) { e.preventDefault(); document.getElementById('zone-'+slot).classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if(f && f.type.startsWith('image/')) readImage(f, slot); }
+function readImage(file, slot) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    images[slot] = e.target.result;
+    const prev = document.getElementById('preview-'+slot);
+    const rem = document.getElementById('remove-'+slot);
+    const zone = document.getElementById('zone-'+slot);
+    prev.src = e.target.result; prev.style.display = 'block';
+    rem.style.display = 'block'; zone.style.display = 'none';
+    updateProgress(); scheduleAutoSave(); showToast('Image loaded ✓');
+  };
+  reader.readAsDataURL(file);
+}
+function removeImg(slot) {
+  images[slot] = null;
+  const prev = document.getElementById('preview-'+slot);
+  const rem = document.getElementById('remove-'+slot);
+  const zone = document.getElementById('zone-'+slot);
+  if(prev) { prev.style.display = 'none'; prev.src = ''; }
+  if(rem) rem.style.display = 'none';
+  if(zone) zone.style.display = 'block';
+  updateProgress();
+}
+
+// ═══════════════════════════════════════════════════
+// PAGE BUILDER
+// ═══════════════════════════════════════════════════
+function buildPage(data, imgs) {
+  imgs = imgs || images;
+  const heroImg = imgs.hero || data._images?.hero || '';
+  const img1 = imgs.img1 || data._images?.img1 || '';
+  const img2 = imgs.img2 || data._images?.img2 || '';
+  const img3 = imgs.img3 || data._images?.img3 || '';
+
+  const ingLines = (data.ingredients||'').split('\n').filter(l=>l.trim())
+    .map(l=>`<li class="ing-item"><span class="ing-check">☐</span><span>${l.trim()}</span></li>`).join('\n');
+  const methLines = (data.method||'').split('\n').filter(l=>l.trim())
+    .map((l,i)=>`<div class="method-step"><span class="step-num">${String(i+1).padStart(2,'0')}</span><p>${l.trim()}</p></div>`).join('\n');
+  const chemHtml = (data.chemistry||'').split('\n\n').filter(p=>p.trim())
+    .map(p=>`<p class="chem-p">${p.replace(/\*(.*?)\*/g,'<em>$1</em>').trim()}</p>`).join('\n');
+  const toParas = t => (t||'').split('\n\n').filter(p=>p.trim()).map(p=>`<p>${p.trim()}</p>`).join('\n');
+  const pubDate = data.publishDate ? new Date(data.publishDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : 'Sunday';
+  const nextDate = data.nextDate ? new Date(data.nextDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${data.recipeName||'Recipe'} · Our Sunday Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0A0A0A;--cream:#FAF6EF;--gold:#C49A2A;--gold-dk:#8B6508;--gold-bg:#FBF3E0;--ink:#1A1A17;--warm:#F4EAD8;--blush:#EDD5CC;--mid:#6B6860;--soft:#A8A29A;--serif:'Cormorant Garamond',Georgia,serif;--sans:'Jost',sans-serif;--mono:'DM Mono',monospace}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{background:var(--cream);font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+nav{background:var(--black);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:var(--serif);font-size:17px;font-weight:700;color:#fff;text-decoration:none;letter-spacing:.04em}
+.nav-sub{font-family:var(--mono);font-size:5.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.nav-links{display:flex;gap:24px}
+.nav-links a{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);text-decoration:none}
+.hero-wrap{width:100%;margin:0;padding:0;line-height:0;overflow:hidden;position:relative}
+.hero-img{width:100%;height:78vh;object-fit:cover;display:block}
+.hero-placeholder{width:100%;height:78vh;background:var(--warm);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.hero-text{background:var(--cream);padding:52px 44px 44px;max-width:800px;margin:0 auto}
+.hero-region{font-family:var(--mono);font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.hero-region::before{content:'';display:block;width:20px;height:1px;background:var(--gold-dk)}
+.hero-name{font-family:var(--serif);font-size:clamp(38px,6vw,76px);font-weight:700;color:var(--ink);line-height:.93;margin-bottom:8px}
+.hero-subtitle{font-family:var(--serif);font-size:clamp(18px,2.5vw,26px);font-weight:300;font-style:italic;color:var(--mid);margin-bottom:28px}
+.stats-bar{display:flex;gap:0;border:1px solid #E0D8CC;margin-bottom:22px}
+.stat-cell{flex:1;padding:12px 16px;border-right:1px solid #E0D8CC;text-align:center}
+.stat-cell:last-child{border-right:none}
+.stat-val{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink)}
+.stat-lbl{font-family:var(--mono);font-size:6.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);margin-top:2px}
+.edition-line{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin-bottom:22px}
+.jump-btn{display:inline-block;background:var(--black);color:#fff;font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;padding:13px 24px;text-decoration:none}
+.meta-bar{background:var(--black);padding:0 44px}
+.meta-row{display:flex;border-bottom:1px solid rgba(255,255,255,.08);padding:13px 0}
+.meta-row:last-child{border-bottom:none}
+.meta-key{font-family:var(--mono);font-size:7.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.3);width:120px;flex-shrink:0}
+.meta-val{font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:rgba(255,255,255,.75)}
+.page-section{padding:60px 44px;max-width:800px;margin:0 auto}
+.section-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.section-eyebrow::before{content:'';display:block;width:20px;height:1px;background:var(--gold-dk)}
+.section-hl{font-family:var(--serif);font-size:clamp(26px,4vw,42px);color:var(--ink);line-height:1.08;margin-bottom:8px;font-weight:700}
+.section-sub{font-family:var(--serif);font-size:16px;font-weight:300;font-style:italic;color:var(--gold-dk);margin-bottom:26px}
+p{font-size:1rem;line-height:1.88;color:var(--ink);margin-bottom:22px}
+.pull-quote{background:var(--black);padding:40px 48px;margin:40px 0;text-align:center}
+.pull-quote p{font-family:var(--serif);font-size:clamp(18px,2.8vw,28px);font-weight:300;font-style:italic;color:var(--cream);line-height:1.55;margin-bottom:0}
+.full-img{width:100%;display:block;margin:32px 0}
+.img-cap{font-family:var(--mono);font-size:7.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dk);padding:8px 0 24px}
+.img-ph{width:100%;height:280px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin:32px 0}
+.chem-box{background:var(--warm);padding:36px 44px;margin:32px 0}
+.chem-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:18px}
+.chem-p{font-size:.95rem;line-height:1.85;margin-bottom:16px;color:var(--ink)}
+.chem-p em{font-style:italic;color:var(--gold-dk)}
+.chem-p:last-child{margin-bottom:0}
+.joy-section{background:var(--blush);padding:64px 44px}
+.joy-inner{max-width:800px;margin:0 auto}
+#recipe{background:var(--cream);padding:60px 44px;max-width:800px;margin:0 auto}
+.recipe-card{border:2px solid var(--ink);padding:40px}
+.rc-header{border-bottom:1px solid #E0D8CC;padding-bottom:18px;margin-bottom:18px}
+.rc-name{font-family:var(--serif);font-size:clamp(24px,3.5vw,36px);font-weight:700;color:var(--ink);margin-bottom:4px}
+.rc-sub{font-family:var(--serif);font-size:15px;font-weight:300;font-style:italic;color:var(--mid)}
+.rc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E0D8CC;border:1px solid #E0D8CC;margin-bottom:28px}
+.rc-stat{background:var(--cream);padding:12px 10px;text-align:center}
+.rc-stat-v{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink)}
+.rc-stat-l{font-family:var(--mono);font-size:6px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin-top:2px}
+.ing-title,.meth-title{font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:12px}
+.ing-list{list-style:none;margin-bottom:28px}
+.ing-item{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F0EAE0;font-size:.9rem;line-height:1.5}
+.ing-check{font-size:14px;color:var(--soft);flex-shrink:0;cursor:pointer;user-select:none}
+.meth-step{display:flex;gap:20px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #F0EAE0}
+.meth-step:last-child{border-bottom:none}
+.step-num{font-family:var(--serif);font-size:30px;font-weight:700;color:#E0D8CC;flex-shrink:0;line-height:1;width:38px}
+.meth-step p{font-size:.95rem;line-height:1.8;padding-top:4px}
+.closing{padding:48px 44px;max-width:800px;margin:0 auto;text-align:center}
+.closing-rule{height:1px;background:#E0D8CC;margin:0 auto 28px;width:60px}
+.closing-q{font-family:var(--serif);font-size:clamp(16px,2vw,22px);font-weight:300;font-style:italic;color:var(--ink);line-height:1.5;margin-bottom:14px}
+.closing-attr{font-family:var(--mono);font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft)}
+.next-up{background:var(--warm);padding:44px;text-align:center}
+.next-lbl{font-family:var(--mono);font-size:7.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:8px}
+.next-name{font-family:var(--serif);font-size:clamp(20px,3vw,32px);font-weight:600;color:var(--ink);margin-bottom:18px}
+.next-btn{display:inline-block;background:var(--black);color:#fff;font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;padding:12px 24px;text-decoration:none}
+footer{background:var(--black);padding:28px 40px;display:flex;justify-content:space-between;align-items:center}
+.foot-logo{font-family:var(--serif);font-size:15px;font-weight:600;color:#fff}
+.foot-logo div{font-family:var(--mono);font-size:6px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.foot-copy{font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.15)}
+</style>
+</head>
+<body>
+<nav>
+  <div>
+    <a href="/" class="nav-logo">Our Sunday Table</a>
+    <div class="nav-sub">Joy · Heritage · Science</div>
+  </div>
+  <div class="nav-links">
+    <a href="/ost-our-recipes-v2.html">Our Recipes</a>
+    <a href="/ost-global-lab-v2.html">The Global Lab</a>
+    <a href="/ost-food-fund.html">The Food Fund</a>
+    <a href="/ost-our-story.html">Our Story</a>
+  </div>
+</nav>
+
+<div class="hero-wrap">
+  ${heroImg ? `<img class="hero-img" src="${heroImg}" alt="${data.recipeName||'Recipe'}">` : `<div class="hero-placeholder">Hero image goes here</div>`}
+</div>
+
+<div class="hero-text">
+  <div class="hero-region">${data.region||'Africa'}</div>
+  <h1 class="hero-name">${data.recipeName||'Recipe Name'}</h1>
+  ${data.recipeSubtitle ? `<div class="hero-subtitle">${data.recipeSubtitle}</div>` : ''}
+  <div class="stats-bar">
+    <div class="stat-cell"><div class="stat-val">${data.prepTime||'—'}</div><div class="stat-lbl">Prep</div></div>
+    <div class="stat-cell"><div class="stat-val">${data.bakeTime||'—'}</div><div class="stat-lbl">Bake</div></div>
+    <div class="stat-cell"><div class="stat-val">${data.servings||'—'}</div><div class="stat-lbl">Serves</div></div>
+    <div class="stat-cell"><div class="stat-val">${data.temp||'—'}</div><div class="stat-lbl">Temp</div></div>
+  </div>
+  ${data.edition ? `<div class="edition-line">${data.edition}${data.publishDate ? ' · ' + pubDate : ''}</div>` : ''}
+  <a href="#recipe" class="jump-btn">Jump to Recipe ↓</a>
+</div>
+
+<div class="meta-bar">
+  <div class="meta-row"><span class="meta-key">Region</span><span class="meta-val">${data.region||'—'}</span></div>
+  <div class="meta-row"><span class="meta-key">Category</span><span class="meta-val">Baking · ${data.category||'—'}</span></div>
+  <div class="meta-row"><span class="meta-key">Pillars</span><span class="meta-val">Heritage · Science · Joy</span></div>
+  <div class="meta-row"><span class="meta-key">Level</span><span class="meta-val">${data.level||'—'}</span></div>
+</div>
+
+<div class="page-section">
+  ${toParas(data.opening)}
+  ${img1 ? `<img class="full-img" src="${img1}" alt="${data.recipeName}"><div class="img-cap">${data.recipeName||'Our Sunday Table'}</div>` : '<div class="img-ph">Food photo 1</div>'}
+</div>
+
+<div class="page-section">
+  <div class="section-eyebrow">Heritage</div>
+  ${data.heritageHeadline ? `<h2 class="section-hl">${data.heritageHeadline}</h2>` : ''}
+  ${data.heritageSubhead ? `<div class="section-sub">${data.heritageSubhead}</div>` : ''}
+  ${toParas(data.heritage)}
+  ${data.pullQuote ? `<div class="pull-quote"><p>${data.pullQuote}</p></div>` : ''}
+  ${toParas(data.heritageClose)}
+</div>
+
+<div class="page-section">
+  <div class="section-eyebrow">Science</div>
+  ${data.scienceHeadline ? `<h2 class="section-hl">${data.scienceHeadline}</h2>` : ''}
+  ${toParas(data.science)}
+  ${data.chemistry ? `<div class="chem-box"><div class="chem-lbl">The Chemistry</div>${chemHtml}</div>` : ''}
+  ${toParas(data.scienceClose)}
+  ${img2 ? `<img class="full-img" src="${img2}" alt="${data.recipeName}"><div class="img-cap">${data.recipeName||''} · Detail</div>` : '<div class="img-ph">Food photo 2</div>'}
+</div>
+
+<div class="joy-section">
+  <div class="joy-inner">
+    <div class="section-eyebrow">Joy Through Precision</div>
+    ${data.joyHeadline ? `<h2 class="section-hl">${data.joyHeadline}</h2>` : ''}
+    ${toParas(data.joy)}
+    ${img3 ? `<img class="full-img" src="${img3}" alt="${data.recipeName}"><div class="img-cap" style="background:var(--blush)">${data.recipeName||''}</div>` : '<div class="img-ph" style="background:rgba(0,0,0,.05)">Food photo 3</div>'}
+  </div>
+</div>
+
+<div id="recipe">
+  <div class="recipe-card">
+    <div class="rc-header">
+      <div class="rc-name">${data.recipeName||'Recipe'}</div>
+      ${data.recipeSubtitle ? `<div class="rc-sub">${data.recipeSubtitle}</div>` : ''}
+    </div>
+    <div class="rc-stats">
+      <div class="rc-stat"><div class="rc-stat-v">${data.prepTime||'—'}</div><div class="rc-stat-l">Prep</div></div>
+      <div class="rc-stat"><div class="rc-stat-v">${data.bakeTime||'—'}</div><div class="rc-stat-l">Bake</div></div>
+      <div class="rc-stat"><div class="rc-stat-v">${data.servings||'—'}</div><div class="rc-stat-l">Serves</div></div>
+      <div class="rc-stat"><div class="rc-stat-v">${data.temp||'—'}</div><div class="rc-stat-l">Temp</div></div>
+    </div>
+    <div class="ing-title">Ingredients</div>
+    <ul class="ing-list">${ingLines||'<li class="ing-item"><span>Ingredients go here</span></li>'}</ul>
+    <div class="meth-title">Method</div>
+    ${methLines||'<div class="meth-step"><span class="step-num">01</span><p>Method steps go here</p></div>'}
+  </div>
+</div>
+
+<div class="closing">
+  <div class="closing-rule"></div>
+  ${data.closingLine ? `<div class="closing-q">${data.closingLine}</div>` : ''}
+  <div class="closing-attr">— Temie Giwa-Tubosun · Our Sunday Table</div>
+  <div class="closing-rule" style="margin-top:28px"></div>
+</div>
+
+${data.nextName ? `<div class="next-up"><div class="next-lbl">Next Sunday${nextDate ? ' · ' + nextDate : ''}</div><div class="next-name">${data.nextName}</div><a href="/ost-our-recipes-v2.html" class="next-btn">See all recipes →</a></div>` : ''}
+
+<footer>
+  <div class="foot-logo">Our Sunday Table<div>Joy · Heritage · Science</div></div>
+  <div class="foot-copy">© Our Sunday Table · oursundaytable.co</div>
+</footer>
+
+<script>
+document.querySelectorAll('.ing-check').forEach(el => {
+  el.addEventListener('click', function() {
+    this.textContent = this.textContent === '☐' ? '☑' : '☐';
+    this.parentElement.style.opacity = this.textContent === '☑' ? '0.45' : '1';
+  });
+});
+<\/script>
+</body>
+</html>`;
+}
+
+// ═══════════════════════════════════════════════════
+// PREVIEW & PUBLISH
+// ═══════════════════════════════════════════════════
+function openPreview() {
+  const data = collectData();
+  document.getElementById('previewFrame').srcdoc = buildPage(data, images);
+  document.getElementById('previewModal').classList.add('open');
+}
+function closePreview() { document.getElementById('previewModal').classList.remove('open'); }
+
+async function publishRecipe() {
+  const data = collectData();
+  if (!data.recipeName) { showToast('Add a recipe name first'); return; }
+  if (!ghSettings.token) { showToast('Add your GitHub token in Settings'); return; }
+
+  const slug = data.recipeName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  const filename = slug + '.html';
+  const publishBtn = document.getElementById('publishBtn');
+  if (publishBtn) { publishBtn.disabled = true; publishBtn.textContent = 'Publishing...'; }
+  setAutoSave('Publishing to GitHub...', 'saving');
+
+  try {
+    const html = buildPage(data, images);
+
+    // Push HTML file
+    let sha = null;
+    try { const ex = await ghGetFile(filename); if(ex) sha = ex.sha; } catch(e) {}
+    await ghPutFile(filename, html, `Publish: ${data.recipeName}`, sha);
+
+    // Update recipes.json
+    await updateRecipesJson(data, slug);
+
+    // Delete the draft from GitHub
+    try {
+      const draftFile = await ghGetFile(`drafts/${currentDraftId}.json`);
+      if (draftFile) await ghDeleteFile(`drafts/${currentDraftId}.json`, draftFile.sha, `Published: ${data.recipeName}`);
+    } catch(e) {}
+
+    closePreview();
+    showToast(`"${data.recipeName}" is live ✓`);
+    setAutoSave('Published ✓', 'saved');
+
+    // Return to dashboard after 1.5s
+    setTimeout(() => { showDashboard(); }, 1500);
+
+  } catch(err) {
+    setAutoSave('Publish failed — ' + err.message);
+    showToast('Publish failed: ' + err.message);
+    if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = 'Publish →'; }
+  }
+}
+
+async function updateRecipesJson(data, slug) {
+  let recipes = [], sha = null;
+  try {
+    const ex = await ghGetFile('recipes.json');
+    if (ex) { sha = ex.sha; recipes = ex.content; }
+  } catch(e) {}
+  const entry = {
+    slug, name: data.recipeName, subtitle: data.recipeSubtitle,
+    region: data.region, category: data.category, level: data.level,
+    publishDate: data.publishDate, edition: data.edition,
+    url: `/${slug}.html`, updatedAt: new Date().toISOString()
+  };
+  const idx = recipes.findIndex(r => r.slug === slug);
+  if (idx >= 0) recipes[idx] = entry; else recipes.unshift(entry);
+  await ghPutFile('recipes.json', recipes, `Update recipes.json: ${data.recipeName}`, sha);
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key === 's') { e.preventDefault(); saveDraftNow(); }
+  if ((e.metaKey||e.ctrlKey) && e.key === 'p') { e.preventDefault(); openPreview(); }
+  if (e.key === 'Escape') closePreview();
+});
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  loadGhSettings();
+  showDashboard();
+  // Check connection silently
+  if (ghSettings.token) {
+    fetch(`https://api.github.com/user`, {
+      headers: { 'Authorization': `Bearer ${ghSettings.token}`, 'Accept': 'application/vnd.github+json' }
+    }).then(r => updateGhStatusBar(r.ok)).catch(() => updateGhStatusBar(false));
+  } else {
+    updateGhStatusBar(false);
+  }
+});
+</script>
+</body>
+</html>
