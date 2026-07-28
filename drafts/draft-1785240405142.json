@@ -1,0 +1,32 @@
+{
+  "recipeName": "",
+  "recipeSubtitle": "",
+  "region": "",
+  "category": "",
+  "level": "",
+  "publishDate": "",
+  "edition": "",
+  "prepTime": "",
+  "bakeTime": "",
+  "servings": "",
+  "temp": "",
+  "opening": "",
+  "heritageHeadline": "",
+  "heritageSubhead": "",
+  "heritage": "",
+  "pullQuote": "",
+  "scienceHeadline": "",
+  "science": "",
+  "closingLine": "",
+  "ingredients": "",
+  "method": "",
+  "nextName": "",
+  "nextDate": "",
+  "_images": {
+    "hero": null,
+    "img1": null,
+    "img2": null,
+    "img3": null
+  },
+  "updatedAt": "2026-07-28T12:07:01.524Z"
+}
